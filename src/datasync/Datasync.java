@@ -644,7 +644,7 @@ public class Datasync {
          Element componentelement=Util.StringToDocumentElement("<file xmlns=\"http://purl.org/escidoc/metadata/profiles/0.1/file\">\n" +
          "    <dc:title xmlns:dc=\"http://purl.org/dc/elements/1.1/\">"+file.getName()+"</dc:title>\n" +
          "    <dc:description xmlns:dc=\"http://purl.org/dc/elements/1.1/\"></dc:description>\n" +
-         "    <dc:format xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xsi:type=\"dcterms:IMT\">text/tab-separated-values</dc:format>\n" +
+         "    <dc:format xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xsi:type=\"dcterms:IMT\">application/octet-stream</dc:format>\n" +
          "    <dcterms:extent xmlns:dcterms=\"http://purl.org/dc/terms/\">"+file.length()+"</dcterms:extent>\n" +
          "    <dcterms:dateCopyrighted xmlns:dcterms=\"http://purl.org/dc/terms/\"></dcterms:dateCopyrighted>\n" +
          "    <dc:rights xmlns:dc=\"http://purl.org/dc/elements/1.1/\"></dc:rights>\n" +

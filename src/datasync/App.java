@@ -4,7 +4,7 @@
  */
 package datasync;
 
-import de.escidoc.core.client.Authentication;
+//import de.escidoc.core.client.Authentication;
 import de.escidoc.core.client.ContainerHandlerClient;
 import de.escidoc.core.client.exceptions.TransportException;
 import de.escidoc.core.client.exceptions.application.security.AuthenticationException;
@@ -42,7 +42,7 @@ public class App {
             System.out.println("trying to authenticate ");            
             Authentication auth=new Authentication(infrastructure,username,password);
             
-            System.out.println(auth.getHandle());
+   //         System.out.println(auth.getHandle()+"\n");
             
             ContainerHandlerClient containerhandler=new ContainerHandlerClient();
             containerhandler.setServiceAddress(auth.getServiceAddress());

@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 package datasync;
-import de.escidoc.core.client.Authentication;
+//import de.escidoc.core.client.Authentication;
 import de.escidoc.core.client.exceptions.application.notfound.ResourceNotFoundException;
 import de.escidoc.core.resources.ResourceRef;
 import de.escidoc.core.resources.common.MetadataRecord;

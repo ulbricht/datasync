@@ -4,7 +4,7 @@
  */
 package datasync;
 
-import de.escidoc.core.client.Authentication;
+//import de.escidoc.core.client.Authentication;
 import de.escidoc.core.client.ContainerHandlerClient;
 import de.escidoc.core.client.ItemHandlerClient;
 import de.escidoc.core.client.StagingHandlerClient;

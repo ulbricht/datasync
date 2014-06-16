@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package datasync;
+package de.gfz_potsdam.datasync;
 
 import de.escidoc.core.resources.common.MetadataRecord;
 import de.escidoc.core.resources.om.container.Container;
@@ -132,7 +132,7 @@ public class Util {
     }    
     
     public static MetadataRecord getDefaultMDRecord(String dctitle) throws Exception{
-        MetadataRecord md=new MetadataRecord();
+        MetadataRecord md=new MetadataRecord("escidoc");
         Element element=Util.StringToDocumentElement("<?xml version=\"1.0\"?>"
         + "<resource xmlns=\"http://example.org/pmdsimpledc/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n" +
           "  <dc:title xmlns:dc=\"http://purl.org/dc/elements/1.1/\">"+dctitle+"</dc:title>\n" +
@@ -141,16 +141,14 @@ public class Util {
           "</resource>");
 
         md.setContent(element);
-        md.setName("escidoc");
         return md;
     }
     
     public static MetadataRecord ReadMDRecord(String metaName,File metaFile) throws Exception{
         
-        MetadataRecord md=new MetadataRecord();
+        MetadataRecord md=new MetadataRecord(metaName);
         Element element=FileToDocumentElement(metaFile);
         md.setContent(element);
-        md.setName(metaName);
         return md;
     }
             

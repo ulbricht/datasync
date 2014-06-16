@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package datasync;
+package de.gfz_potsdam.datasync;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -45,9 +45,9 @@ public class SyncDB {
             throw new Exception ("Id should not be empty");
         
         PreparedStatement stat;
-        stat = conn.prepareStatement("merge into filemap (path,escidocid,local,server,isfile) values(?,?,?,?,?)");
+        stat = conn.prepareStatement("MERGE INTO filemap (path,escidocid,local,server,isfile) VALUES (?,?,?,?,?)");
         
-        System.out.println("merge into filemap (path,escidocid,local,server) values("+path+","+id+","+new DateTime(local)+","+new DateTime(server)+","+Boolean.toString(isfile)+")");
+        System.out.println("MERGE INTO filemap (path,escidocid,local,server) VALUES ("+path+","+id+","+new DateTime(local)+","+new DateTime(server)+","+Boolean.toString(isfile)+")");
         
         stat.setString(1,path);       
         stat.setString(2,id);
@@ -64,7 +64,7 @@ public class SyncDB {
     }        
     public boolean remoteIsNewer(String path, String id,long server) throws SQLException{
         PreparedStatement stat;
-        stat = conn.prepareStatement("select path from filemap where path=? and escidocid=? and server<=?");
+        stat = conn.prepareStatement("SELECT path FROM filemap WHERE path=? AND escidocid=? AND server<=?");
         stat.setString(1,path);
         stat.setString(2,id);
         stat.setTimestamp(3,new Timestamp(server));            
@@ -79,7 +79,7 @@ public class SyncDB {
     }        
     public boolean localIsNewer(String path, String id,long local) throws SQLException{
         PreparedStatement stat;
-        stat = conn.prepareStatement("select path from filemap where path=? and escidocid=? and local<=?");
+        stat = conn.prepareStatement("SELECT path FROM filemap WHERE path=? AND escidocid=? AND local<=?");
  
         stat.setString(1,path);
         stat.setString(2,id);
@@ -96,7 +96,7 @@ public class SyncDB {
         PreparedStatement stat;        
         String dir=basedir+separator+"%";
         String subdir=dir+separator+"%";
-        stat=conn.prepareStatement("select path, escidocid from filemap where path like ? and path not like ?");
+        stat=conn.prepareStatement("SELECT path, escidocid FROM filemap WHERE path LIKE ? AND path NOT LIKE ?");
         stat.setString(1,dir);
         stat.setString(2,subdir); 
         ResultSet rs=stat.executeQuery();
@@ -111,7 +111,7 @@ public class SyncDB {
         
         boolean removedirectory=false;
         
-        stat = conn.prepareStatement("select * from filemap where path=? and escidocid=? and isfile=?");
+        stat = conn.prepareStatement("SELECT * FROM filemap WHERE path=? AND escidocid=? AND isfile=?");
         stat.setString(1,path);
         stat.setString(2,id);
         stat.setBoolean(3,SyncDB.DIRECTORY);      
@@ -119,8 +119,8 @@ public class SyncDB {
         if (rs.next())        
             removedirectory=true;
 
-        System.out.println("delete from filemap where path="+path+" and escidocid="+id+")");                
-        stat = conn.prepareStatement("delete from filemap where path=? and escidocid=?"); 
+        System.out.println("DELETE FROM filemap WHERE path="+path+" AND escidocid="+id+")");                
+        stat = conn.prepareStatement("DELETE FROM filemap WHERE path=? AND escidocid=?"); 
         stat.setString(1,path);
         stat.setString(2,id);
         stat.execute();        
@@ -128,8 +128,8 @@ public class SyncDB {
         if (!removedirectory)
             return;
         
-        System.out.println("delete from filemap where path="+path+separator+"%)");        
-        stat = conn.prepareStatement("delete from filemap where path like ?"); 
+        System.out.println("DELETE FROM filemap WHERE path LIKE "+path+separator+"%)");        
+        stat = conn.prepareStatement("DELETE FROM filemap WHERE path LIKE ?"); 
         stat.setString(1,path+separator+"%");
         stat.execute();    
         
@@ -139,7 +139,7 @@ public class SyncDB {
     
     public boolean entryExists(String path, String id) throws SQLException{
         PreparedStatement stat;
-        stat = conn.prepareStatement("select path from filemap where path=? and escidocid=?"); 
+        stat = conn.prepareStatement("SELECT path FROM filemap WHERE path=? AND escidocid=?"); 
         stat.setString(1,path);
         stat.setString(2,id);
         ResultSet rs = stat.executeQuery();
@@ -151,7 +151,7 @@ public class SyncDB {
     }    
     public boolean entryExists(String path) throws SQLException{
         PreparedStatement stat;
-        stat = conn.prepareStatement("select path from filemap where path=?"); 
+        stat = conn.prepareStatement("SELECT path FROM filemap WHERE path=?"); 
         stat.setString(1,path);
         ResultSet rs = stat.executeQuery();
         if (rs.next())        
@@ -164,7 +164,7 @@ public class SyncDB {
     public void dump() throws SQLException{
         Statement stat;
         stat = conn.createStatement();       
-        ResultSet rs= stat.executeQuery("select * from filemap");
+        ResultSet rs= stat.executeQuery("SELECT * FROM filemap");
         while (rs.next()) {
             log.log(Level.INFO," \"{0}\"    \"{1}\"    \"{2}\"    \"{3}\"    \"{4}\"",
                     new Object[]{rs.getString("escidocid"),rs.getTimestamp("local"),rs.getTimestamp("server"),rs.getString("path"),rs.getBoolean("isfile")});    
@@ -177,17 +177,19 @@ public class SyncDB {
  
         Statement stat = conn.createStatement();
         
-        ResultSet rs= stat.executeQuery("select * from information_schema.tables where table_name = 'FILEMAP' ");
+        ResultSet rs= stat.executeQuery("SELECT * FROM information_schema.tables WHERE table_name = 'FILEMAP' ");
         
         if (rs.next())
             return;
         
-        stat.execute("create table filemap(path varchar(4096), escidocid varchar(255) not null, local datetime not null, server datetime not null, isfile boolean not null, primary key (path, escidocid))");
+        stat.execute("CREATE TABLE filemap(path VARCHAR(4096), escidocid VARCHAR(255) NOT NULL, local DATETIME NOT NULL, server DATETIME NOT NULL, isfile BOOLEAN NOT NULL, PRIMARY KEY (path, escidocid))");
         stat.close();
     }    
+
     public void open(String path) throws SQLException{
         conn = DriverManager.getConnection("jdbc:h2:"+path+"/syncDB");        
     }
+
     public void close() throws SQLException{
         conn.close();        
     }

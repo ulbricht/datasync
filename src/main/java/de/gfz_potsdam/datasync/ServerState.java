@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package datasync;
+package de.gfz_potsdam.datasync;
 
 //import de.escidoc.core.client.Authentication;
 import de.escidoc.core.client.ContainerHandlerClient;
@@ -11,16 +11,18 @@ import de.escidoc.core.client.StagingHandlerClient;
 import de.escidoc.core.client.exceptions.application.notfound.ResourceNotFoundException;
 import de.escidoc.core.resources.common.Result;
 import de.escidoc.core.resources.common.TaskParam;
-import de.escidoc.core.resources.common.structmap.ContainerRef;
-import de.escidoc.core.resources.common.structmap.ItemRef;
+import de.escidoc.core.resources.common.structmap.ContainerMemberRef;
+import de.escidoc.core.resources.common.structmap.ItemMemberRef;
 import de.escidoc.core.resources.common.structmap.MemberRef;
 import de.escidoc.core.resources.common.structmap.StructMap;
-import de.escidoc.core.resources.om.GenericVersionableResource;
+import de.escidoc.core.resources.VersionableResource;
 import de.escidoc.core.resources.om.container.Container;
 import de.escidoc.core.resources.om.item.Item;
 import de.escidoc.core.resources.om.item.component.Component;
-import de.escidoc.core.resources.sb.srw.SearchRetrieveResponseType;
+
+import de.escidoc.core.resources.sb.search.SearchRetrieveResponse;
 import gov.loc.www.zing.srw.SearchRetrieveRequestType;
+
 import java.io.File;
 import java.net.URL;
 import java.util.Collection;
@@ -43,8 +45,8 @@ public class ServerState {
     
     Authentication auth;
     String topcontainerid;
-    HashMap <String,GenericVersionableResource> pathToResource;
-    HashMap <String,GenericVersionableResource> idToResource;
+    HashMap <String,VersionableResource> pathToResource;
+    HashMap <String,VersionableResource> idToResource;
     ContainerHandlerClient containerhandler;
     ItemHandlerClient itemhandler;
     StagingHandlerClient staginghandler;
@@ -52,34 +54,34 @@ public class ServerState {
     public ServerState (Authentication auth, String topcontainer) throws Exception{
         this.auth=auth;
         this.topcontainerid=topcontainer;
-        containerhandler=new ContainerHandlerClient();
-        containerhandler.setServiceAddress(auth.getServiceAddress());
+
+        containerhandler=new ContainerHandlerClient(auth.getServiceAddress());
         containerhandler.setHandle(auth.getHandle()); 
-        itemhandler=new ItemHandlerClient();
-        itemhandler.setServiceAddress(auth.getServiceAddress());
+
+        itemhandler=new ItemHandlerClient(auth.getServiceAddress());
         itemhandler.setHandle(auth.getHandle());   
        
-        staginghandler=new StagingHandlerClient();
-        staginghandler.setServiceAddress(auth.getServiceAddress());
+        staginghandler=new StagingHandlerClient(auth.getServiceAddress());
         staginghandler.setHandle(auth.getHandle());            
-        idToResource=new HashMap<String,GenericVersionableResource>(); 
-        pathToResource=new HashMap<String,GenericVersionableResource>();  
+
+        idToResource=new HashMap<String,VersionableResource>(); 
+        pathToResource=new HashMap<String,VersionableResource>();  
     }
     
     public Container getTopContainer(){
         return (Container)idToResource.get(topcontainerid);
     }
 
-    public GenericVersionableResource getResourceById(String id) throws Exception{
+    public VersionableResource getResourceById(String id) throws Exception{
         
         if (!idToResource.containsKey(id))
             throw new ResourceNotFoundException();
         
-        return (GenericVersionableResource)idToResource.get(id);
+        return (VersionableResource)idToResource.get(id);
     }    
     
-    public GenericVersionableResource getResourceByPath(String path){
-        return (GenericVersionableResource)pathToResource.get(path);
+    public VersionableResource getResourceByPath(String path){
+        return (VersionableResource)pathToResource.get(path);
     }
     
     private void downloadtree (Container container) throws Exception{
@@ -87,7 +89,7 @@ public class ServerState {
         if (sm==null)
             return;
         for (MemberRef ref : sm){            
-            if (ref instanceof ItemRef){
+            if (ref instanceof ItemMemberRef){
                 Item item=itemhandler.retrieve(ref.getObjid());
                 idToResource.put(item.getObjid(),item);
             }else{                
@@ -105,10 +107,10 @@ public class ServerState {
         if (sm==null)
             return;
         for (MemberRef ref : sm){            
-            GenericVersionableResource resource;
+            VersionableResource resource;
             String resourcepath;
             
-            if (ref instanceof ItemRef){
+            if (ref instanceof ItemMemberRef){
                 Item item=(Item)getResourceById(ref.getObjid());
                 for (Component c : item.getComponents()){
                     String filename=c.getProperties().getFileName();
@@ -116,7 +118,7 @@ public class ServerState {
                     resourcepath=path+File.separator+filename;
                     pathToResource.put(resourcepath, resource);
                 }
-            }else if (ref instanceof ContainerRef){
+            }else if (ref instanceof ContainerMemberRef){
                 Container newcontainer=(Container)getResourceById(ref.getObjid());
                 String dirname=newcontainer.getProperties().getName();
                 resource=newcontainer;
@@ -184,13 +186,13 @@ public class ServerState {
         String containerquery="\"/properties/context/id\"=\""+context+"\" AND ("+containerids+") AND \"/last-modification-date\">\""+lastmodified+"\"";
         SearchRetrieveRequestType containersrr=new SearchRetrieveRequestType();
         containersrr.setQuery(containerquery);
-        SearchRetrieveResponseType containersrrp=containerhandler.retrieveContainers(containersrr);    
+        SearchRetrieveResponse containersrrp=containerhandler.retrieveContainers(containersrr);    
 
 
         String itemquery="\"/properties/context/id\"=\""+context+"\" AND ("+itemids+") AND \"/last-modification-date\">\""+lastmodified+"\"";
         SearchRetrieveRequestType itemsrr=new SearchRetrieveRequestType();
         itemsrr.setQuery(itemquery);
-        SearchRetrieveResponseType itemsrrp=null;
+        SearchRetrieveResponse itemsrrp=null;
         if (itemids.length()!=0)
             itemsrrp=itemhandler.retrieveItems(itemsrr);           
        
@@ -204,14 +206,14 @@ public class ServerState {
         
     }
     
-    public DateTime containerAddMembers (Container parent, Collection<GenericVersionableResource> children) throws Exception{
+    public DateTime containerAddMembers (Container parent, Collection<VersionableResource> children) throws Exception{
         TaskParam tp=new TaskParam();
         tp.setLastModificationDate(parent.getLastModificationDate());
-        for (GenericVersionableResource child : children)
+        for (VersionableResource child : children)
             tp.addResourceRef(child.getObjid());
         Result r=containerhandler.addMembers(parent.getObjid(), tp);      
   
-        for (GenericVersionableResource child : children){
+        for (VersionableResource child : children){
           idToResource.put(child.getObjid(),child);        
         }
         Container ret=containerForceRetrieve(parent.getObjid());
@@ -290,7 +292,7 @@ public class ServerState {
         
         Set<String> ids=pathToResource.keySet();
         for (String path : ids){
-            GenericVersionableResource rc=(GenericVersionableResource)pathToResource.get(path);
+            VersionableResource rc=(VersionableResource)pathToResource.get(path);
             ret.append(path);
             ret.append(" -> ");
             ret.append(rc.getObjid());

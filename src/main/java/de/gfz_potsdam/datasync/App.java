@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package datasync;
+package de.gfz_potsdam.datasync;
 
 //import de.escidoc.core.client.Authentication;
 import de.escidoc.core.client.ContainerHandlerClient;
@@ -19,12 +19,10 @@ public class App {
     
     private static String directory=null;
     private static String container=null;  
-    private static String infrastructure="http://localhost:8080";
+    private static String infrastructure=null;
     private static String username=null;
     private static String password=null;
     public  static SyncDB db=null;
-
-
 
 
     public static void main( String[] args ){
@@ -42,10 +40,9 @@ public class App {
             System.out.println("trying to authenticate ");            
             Authentication auth=new Authentication(infrastructure,username,password);
             
-   //         System.out.println(auth.getHandle()+"\n");
+            System.out.println(auth.getHandle()+"\n");
             
-            ContainerHandlerClient containerhandler=new ContainerHandlerClient();
-            containerhandler.setServiceAddress(auth.getServiceAddress());
+            ContainerHandlerClient containerhandler=new ContainerHandlerClient(auth.getServiceAddress());
             containerhandler.setHandle(auth.getHandle());
             
             Datasync sync= new Datasync(auth,containerhandler.retrieve(container),new File(directory));  

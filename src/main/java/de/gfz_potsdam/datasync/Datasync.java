@@ -2,23 +2,26 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package datasync;
+package de.gfz_potsdam.datasync;
 //import de.escidoc.core.client.Authentication;
 import de.escidoc.core.client.exceptions.application.notfound.ResourceNotFoundException;
-import de.escidoc.core.resources.ResourceRef;
+import de.escidoc.core.resources.common.reference.Reference;
+import de.escidoc.core.resources.common.reference.ContentModelRef;
+import de.escidoc.core.resources.common.reference.ContextRef;
 import de.escidoc.core.resources.common.MetadataRecord;
 import de.escidoc.core.resources.common.MetadataRecords;
-import de.escidoc.core.resources.common.structmap.ContainerRef;
-import de.escidoc.core.resources.common.structmap.ItemRef;
+import de.escidoc.core.resources.common.structmap.ContainerMemberRef;
+import de.escidoc.core.resources.common.structmap.ItemMemberRef;
 import de.escidoc.core.resources.common.structmap.MemberRef;
 import de.escidoc.core.resources.common.structmap.StructMap;
-import de.escidoc.core.resources.om.GenericVersionableResource;
+import de.escidoc.core.resources.VersionableResource;
 import de.escidoc.core.resources.om.container.Container;
 import de.escidoc.core.resources.om.item.Item;
 import de.escidoc.core.resources.om.item.component.Component;
 import de.escidoc.core.resources.om.item.component.Components;
 import de.escidoc.core.resources.om.item.component.ComponentContent;
 import de.escidoc.core.resources.om.item.component.ComponentProperties;
+import de.escidoc.core.resources.om.item.StorageType;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.io.InputStreamReader;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.joda.time.DateTime;
@@ -70,8 +74,10 @@ public class Datasync {
     public void sync() throws Exception{
         
         srv.init();
-        
-        for (int i=0; i<20; i++){
+
+        InputStreamReader r= new InputStreamReader(System.in);
+        int i=0;
+        while (!r.ready()){
             Thread.sleep(1000);
             try{
                 log.log(Level.INFO,"Pass {0}",new Object[]{i});
@@ -82,6 +88,7 @@ public class Datasync {
                 traverseLocalAndUpload(new String(),srv.getTopContainer().getProperties().getName());
                 srv.update();
                 traverseLocalAndDeleteRemote(new String(),srv.getTopContainer().getProperties().getName());
+                i++;
             }catch (ResourceNotFoundException e){
                 System.out.println("Resource not found - Server state changed");
                 e.printStackTrace();
@@ -119,7 +126,7 @@ public class Datasync {
     public void traverseServerAndDeleteLocal(String basedir, Container container) throws Exception{
   
         if (basedir.isEmpty()){
-            Container c=downloadContainer(basedir,new ContainerRef(container.getObjid()));
+            Container c=downloadContainer(basedir,new ContainerMemberRef(container.getObjid()));
             if (c==null)
                 return;
         }
@@ -139,8 +146,8 @@ public class Datasync {
             syncRemoteDeletedToLocal(thebasedir,objects);
             
             for (MemberRef m : sm){   
-                if (m instanceof ContainerRef){
-                    Container c=downloadContainer(thebasedir, (ContainerRef)m);
+                if (m instanceof ContainerMemberRef){
+                    Container c=downloadContainer(thebasedir, (ContainerMemberRef)m);
                     if (c!=null)
                         traverseServerAndDeleteLocal(thebasedir,c);
                 }       
@@ -153,7 +160,7 @@ public class Datasync {
     public void traverseServerAndDownload(String basedir, Container container) throws Exception{
         
         if (basedir.isEmpty()){
-            Container c=downloadContainer(basedir,new ContainerRef(container.getObjid()));
+            Container c=downloadContainer(basedir,new ContainerMemberRef(container.getObjid()));
             if (c==null)
                 return;
         }
@@ -167,10 +174,10 @@ public class Datasync {
                 
                 String dirname=basedir+File.separator+container.getProperties().getName();
                 
-                if (m instanceof ItemRef){
-                    downloadItemFiles(dirname, (ItemRef)m, parent);
-                }else if (m instanceof ContainerRef){
-                    Container c=downloadContainer(dirname, (ContainerRef)m);
+                if (m instanceof ItemMemberRef){
+                    downloadItemFiles(dirname, (ItemMemberRef)m, parent);
+                }else if (m instanceof ContainerMemberRef){
+                    Container c=downloadContainer(dirname, (ContainerMemberRef)m);
                     if (c!=null)
                         traverseServerAndDownload(dirname,c);
                 }       
@@ -193,11 +200,11 @@ public class Datasync {
         if (filecontent!=null){        
     
             HashMap<EscidocPackage,String> pkglist=EscidocPackage.buildPackageList(thebasedir, filecontent);
-            ArrayList<GenericVersionableResource> resourcelist=new ArrayList();
+            ArrayList<VersionableResource> resourcelist=new ArrayList();
                 
             for (EscidocPackage pkg : pkglist.keySet()){
                 String resourcename=pkglist.get(pkg);
-                GenericVersionableResource rc;
+                VersionableResource rc;
                 if (pkg.getIsItem()){
                     rc=uploadItemPackage(thebasedir,resourcename,pkg);     
                 }else{
@@ -279,7 +286,7 @@ public class Datasync {
                    deletecandidates.put(path,objid);
             }else{
                MemberRef mref=(MemberRef)objects.get(objid);
-               if (mref instanceof ItemRef){
+               if (mref instanceof ItemMemberRef){
                    Item item=(Item)srv.getResourceById(mref.getObjid());
                    boolean found=false;
                    for (Component c : item.getComponents()){
@@ -310,7 +317,7 @@ public class Datasync {
         
     }
     
-    private void  downloadItemFiles(String basedir, ItemRef ref, Container parent) throws Exception{
+    private void  downloadItemFiles(String basedir, ItemMemberRef ref, Container parent) throws Exception{
 
         Item item=(Item)srv.getResourceById(ref.getObjid());
         
@@ -351,7 +358,7 @@ public class Datasync {
             }                      
            
             HttpClient client=new HttpClient();
-            String url=auth.getServiceAddress()+component.getContent().getHref().replaceAll("^/","");
+            String url=auth.getServiceAddress()+component.getContent().getXLinkHref().replaceAll("^/","");
             GetMethod method=new GetMethod(url);
             method.setRequestHeader("Cookie", "escidocCookie="+auth.getHandle());                        
 
@@ -380,7 +387,7 @@ public class Datasync {
         }
     }
     
-    private Container downloadContainer(String basedir, ContainerRef ref) throws Exception{
+    private Container downloadContainer(String basedir, ContainerMemberRef ref) throws Exception{
         Container container=(Container)srv.getResourceById(ref.getObjid());
         String name=container.getProperties().getName();
         File dir=new File(directory+File.separator+basedir+File.separator+name);
@@ -438,14 +445,14 @@ public class Datasync {
                    return null;
            }            
            container=new Container();  
-           container.getProperties().setContentModel(new ResourceRef(contentmodel));
-           container.getProperties().setContext(new ResourceRef(context));          
+           container.getProperties().setContentModel(new ContentModelRef (contentmodel));
+           container.getProperties().setContext(new ContextRef(context));          
            
         }
         
 
 
-        MetadataRecord md=new MetadataRecord();
+//        MetadataRecord md=new MetadataRecord();
 
         MetadataRecords mds=new MetadataRecords();
         mds.add(Util.getDefaultMDRecord(dirname));
@@ -478,13 +485,13 @@ public class Datasync {
 
     }
     
-    private void addContainerMembers(String parentdir, Container parent, ArrayList<GenericVersionableResource> children) throws Exception{
+    private void addContainerMembers(String parentdir, Container parent, ArrayList<VersionableResource> children) throws Exception{
         if (parent==null || children==null)
             return;
 
-        HashMap<String,GenericVersionableResource> ids=new HashMap();
+        HashMap<String,VersionableResource> ids=new HashMap();
 
-        for (GenericVersionableResource child : children){
+        for (VersionableResource child : children){
             ids.put(child.getObjid(),child);
         }
         //do not add twice
@@ -512,10 +519,10 @@ public class Datasync {
     
     private Item uploadItemPackage(String basedir, String itemname, EscidocPackage pkg) throws Exception{
         
-        GenericVersionableResource rc=null;
+        VersionableResource rc=null;
         
         for (String filepath : pkg.getAllFilePaths()){
-            rc=(GenericVersionableResource)srv.getResourceByPath(filepath); 
+            rc=(VersionableResource)srv.getResourceByPath(filepath); 
             
             if (rc!=null)
                 break;
@@ -546,8 +553,8 @@ public class Datasync {
             
             
             item=new Item();
-            item.getProperties().setContentModel(new ResourceRef(contentmodel));
-            item.getProperties().setContext(new ResourceRef(context));
+            item.getProperties().setContentModel(new ContentModelRef(contentmodel));
+            item.getProperties().setContext(new ContextRef(context));
             MetadataRecords mds=new MetadataRecords();
             mds.add(Util.getDefaultMDRecord(itemname));
             HashMap<String,File> meta=pkg.getMetadata();
@@ -630,8 +637,8 @@ public class Datasync {
          URL uploadurl=srv.uploadFile(file);
 
          ComponentContent content=new ComponentContent();
-         content.setHref(uploadurl.toString());
-         content.setStorage("internal-managed");
+         content.setXLinkHref(uploadurl.toString());
+         content.setStorageType(StorageType.INTERNAL_MANAGED);
          Component component=new Component();
          component.setContent(content);
          component.setProperties(new ComponentProperties());
@@ -639,7 +646,7 @@ public class Datasync {
          component.getProperties().setContentCategory("semi-structural");
          component.getProperties().setMimeType("application/octet-stream");
 
-         MetadataRecord componentmd = new MetadataRecord();
+         MetadataRecord componentmd = new MetadataRecord("escidoc");
 
          Element componentelement=Util.StringToDocumentElement("<file xmlns=\"http://purl.org/escidoc/metadata/profiles/0.1/file\">\n" +
          "    <dc:title xmlns:dc=\"http://purl.org/dc/elements/1.1/\">"+file.getName()+"</dc:title>\n" +
@@ -652,7 +659,6 @@ public class Datasync {
          "</file>");
 
          componentmd.setContent(componentelement);
-         componentmd.setName("escidoc");
 
          log.log(Level.INFO,"uploaded : {0}",new Object[]{file.getAbsolutePath()});           
          MetadataRecords componentmds=new MetadataRecords();

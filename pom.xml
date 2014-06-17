@@ -22,9 +22,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-				<groupId>org.escidoc.core</groupId>
-				<artifactId>escidoc-ijc</artifactId>
-				<version>1.4.2</version>
+			<groupId>org.escidoc.core</groupId>
+			<artifactId>escidoc-ijc</artifactId>
+			<version>1.4.2</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>
@@ -32,10 +32,15 @@
 			<version>3.1</version>
 		</dependency>
 		<dependency>
-		<groupId>com.h2database</groupId>
-		<artifactId>h2</artifactId>
-		<version>1.4.178</version>
+		    <groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
+		    <version>1.4.178</version>
 		</dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.7</version>
+        </dependency>
 	</dependencies>
 
 	<build>

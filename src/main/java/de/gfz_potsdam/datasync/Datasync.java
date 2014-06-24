@@ -5,7 +5,6 @@
 package de.gfz_potsdam.datasync;
 //import de.escidoc.core.client.Authentication;
 import de.escidoc.core.client.exceptions.application.notfound.ResourceNotFoundException;
-import de.escidoc.core.resources.common.reference.Reference;
 import de.escidoc.core.resources.common.reference.ContentModelRef;
 import de.escidoc.core.resources.common.reference.ContextRef;
 import de.escidoc.core.resources.common.MetadataRecord;
@@ -32,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.io.InputStreamReader;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.joda.time.DateTime;
@@ -274,7 +274,7 @@ public class Datasync {
 
     public void syncRemoteDeletedToLocal(String basedir, HashMap<String,MemberRef> objects) throws Exception{
         
-        //delete local files, that exist, were downloade/uploaded, did not change and are now missing on server.
+        //delete local files, that exist, were downloaded/uploaded, did not change and are now missing on server.
         HashMap<String, String> syncedfiles=App.db.listEntries(basedir,File.separator);
         Set <String> syncedfilepath=syncedfiles.keySet();
         
@@ -355,16 +355,16 @@ public class Datasync {
                 //file was downloaded and locally deleted
                 if (App.db.entryExists(basedir+File.separator+filename,item.getObjid()))
                     continue;                
-            }                      
+            }       
+            
+            //Download component
            
             HttpClient client=new HttpClient();
             String url=auth.getServiceAddress()+component.getContent().getXLinkHref().replaceAll("^/","");
             GetMethod method=new GetMethod(url);
-            method.setRequestHeader("Cookie", "escidocCookie="+auth.getHandle());                        
-
+            method.setRequestHeader("Cookie", "escidocCookie="+auth.getHandle());
             try{
-                log.log(Level.INFO,"downloading : {0}",new Object[]{syncfile.getAbsolutePath()});                            
-                
+                log.log(Level.INFO,"downloading : {0}",new Object[]{syncfile.getAbsolutePath()});
                 client.executeMethod(method);
                 InputStream is=method.getResponseBodyAsStream();                              
                 FileOutputStream file=new FileOutputStream(syncfile);
@@ -377,12 +377,14 @@ public class Datasync {
                 file.flush();                
                 file.getFD().sync();
                 file.close(); 
-                if (suffix.length()==0){
-                    App.db.storeMapping(basedir+File.separator+syncfile.getName(), item.getObjid(), syncfile.lastModified(), item.getLastModificationDate(),SyncDB.FILE);
-                    App.db.storeMapping(basedir, parent.getObjid(), syncdir.lastModified(), parent.getLastModificationDate(),SyncDB.DIRECTORY);
-                }
             }finally{
                 method.releaseConnection();
+            }
+            
+            //update DB for non-conflicting files
+            if (suffix.length()==0){
+                App.db.storeMapping(basedir+File.separator+syncfile.getName(), item.getObjid(), syncfile.lastModified(), item.getLastModificationDate(),SyncDB.FILE);
+                App.db.storeMapping(basedir, parent.getObjid(), syncdir.lastModified(), parent.getLastModificationDate(),SyncDB.DIRECTORY);
             }
         }
     }
@@ -450,9 +452,6 @@ public class Datasync {
            
         }
         
-
-
-//        MetadataRecord md=new MetadataRecord();
 
         MetadataRecords mds=new MetadataRecords();
         mds.add(Util.getDefaultMDRecord(dirname));
@@ -545,7 +544,7 @@ public class Datasync {
             if (!newfiles  && item.getComponents().size()==pkg.getComponents().size())
                 return item;
         }else{
-            //deleted files are still in DB and can not be find as item 
+            //deleted files are still in DB and can not be found as item 
             for (String filepath : pkg.getAllFilePaths()){
                 if (App.db.entryExists(filepath))
                     return null;               

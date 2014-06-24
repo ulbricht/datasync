@@ -30,13 +30,13 @@ import de.escidoc.core.client.exceptions.application.security.AuthenticationExce
  */
 public class Authentication {
      private static final Charset DEFAULT_ENCODING = Charset.forName("UTF8");
-     private String service;
+     private URL service;
      private HashMap <String, String> cookies;
      private String handle;
      
      public Authentication(String service,String username,String password) throws Exception{
          
-         this.service=service;
+         this.service=new URL(service);
          this.cookies=new HashMap<String,String>();
          StringBuffer ret=new StringBuffer();
          
@@ -54,7 +54,7 @@ public class Authentication {
          cookies.clear();         
      }
      
-     public String getServiceAddress(){
+     public URL getServiceAddress(){
          return service;
      }
      

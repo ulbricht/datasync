@@ -92,7 +92,7 @@ public class SyncDB {
     
     public HashMap<String,String> listEntries(String basedir,String separator) throws Exception{
         
-        HashMap<String,String> ret=new HashMap();
+        HashMap<String,String> ret=new HashMap<String,String>();
         PreparedStatement stat;        
         String dir=basedir+separator+"%";
         String subdir=dir+separator+"%";

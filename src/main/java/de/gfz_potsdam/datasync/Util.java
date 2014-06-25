@@ -52,9 +52,9 @@ public class Util {
         file.delete();
     }
     
-    public static List ExecCmd (String directory, String cmd) throws Exception{
+    public static List<String> ExecCmd (String directory, String cmd) throws Exception{
         
-        ArrayList<String> ret=new ArrayList();
+        ArrayList<String> ret=new ArrayList<String>();
         BufferedReader reader;        
         Runtime rt = Runtime.getRuntime();   
         File dir=new File (directory);
@@ -64,8 +64,7 @@ public class Util {
 
         InputStream is;
         
-        byte[] buffer=new byte[4096];     
-        int len;
+
 
         is=p.getInputStream();        
         reader=new BufferedReader(new InputStreamReader(is, DEFAULT_ENCODING));
@@ -152,20 +151,5 @@ public class Util {
         return md;
     }
             
-    
-    
-    private static void InitDir() throws Exception{
-        Print("init");
-        Print(ExecCmd(".","git init"));            
-    }
-    
-    private static void Print(List<String> arg){
-        for (String text : arg){
-            Print (text);
-        }
-    }
-    
-    private static void Print(String arg){
-        System.out.println(arg);
-    }
+
 }

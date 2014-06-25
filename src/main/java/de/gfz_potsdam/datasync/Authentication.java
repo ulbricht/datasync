@@ -49,7 +49,7 @@ public class Authentication {
          httpRequest(service+"/aa/login?target=",emptybody.getBytes(),ret,"GET"); 
          
          if (cookies.get("escidocCookie")==null)
-             throw new AuthenticationException(1,"authentication failed","","");
+             throw new AuthenticationException("authentication failed", new RuntimeException());
          handle=cookies.get("escidocCookie");
          cookies.clear();         
      }

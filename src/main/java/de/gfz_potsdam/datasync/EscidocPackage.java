@@ -16,15 +16,15 @@ public class EscidocPackage {
     
 
     protected HashMap <File,String> components;
-    protected HashMap <String, File> pathToFile;
+    protected HashMap <String,File> pathToFile;
     protected HashMap <String,File> metadata;
     protected boolean isContainer;
 
        
     public EscidocPackage(){
-        components=new HashMap();
-        metadata=new HashMap();
-        pathToFile=new HashMap();
+        components=new HashMap<File,String>();
+        metadata=new HashMap<String,File>();
+        pathToFile=new HashMap<String,File>();
     }
     public void setIsContainer(){
         isContainer=true;
@@ -109,13 +109,13 @@ public class EscidocPackage {
     }
     public static HashMap<EscidocPackage,String> buildPackageList(String basedir, File[] filelist){
         
-        HashMap<String,File> metadata=new HashMap();
-        HashMap<String,String> metaschema=new HashMap();
-        HashMap<String,File> files=new HashMap();        
-        HashMap<String,File> directories=new HashMap();
+        HashMap<String,File> metadata=new HashMap<String,File>();
+        HashMap<String,String> metaschema=new HashMap<String,String>();
+        HashMap<String,File> files=new HashMap<String,File>();        
+        HashMap<String,File> directories=new HashMap<String,File>();
                
-        HashMap<String, EscidocPackage> dirpackage=new HashMap();
-        HashMap<String, EscidocPackage> filepackage=new HashMap();        
+        HashMap<String, EscidocPackage> dirpackage=new HashMap<String, EscidocPackage>();
+        HashMap<String, EscidocPackage> filepackage=new HashMap<String, EscidocPackage>();        
         
         for (File file : filelist){            
 
@@ -171,7 +171,7 @@ public class EscidocPackage {
             }
         }        
        
-        HashMap <EscidocPackage,String> result=new HashMap();
+        HashMap <EscidocPackage,String> result=new HashMap<EscidocPackage,String> ();
         
         for (String dirprefix : dirpackage.keySet()){
             result.put(dirpackage.get(dirprefix), dirprefix);

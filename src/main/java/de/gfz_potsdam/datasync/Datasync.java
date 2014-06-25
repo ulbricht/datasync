@@ -104,7 +104,7 @@ public class Datasync {
         
         File[] content=currentdir.listFiles(new NoHiddenEntityFilter());
         
-        HashSet<String> entitylist=new HashSet();
+        HashSet<String> entitylist=new HashSet<String>();
  
         String thebasedir=basedir+File.separator+dir;
             
@@ -130,15 +130,13 @@ public class Datasync {
             if (c==null)
                 return;
         }
-        
-        Container parent=container;
-        
+               
         StructMap sm=container.getStructMap();
         
         if (sm!=null){
             
             String thebasedir=basedir+File.separator+container.getProperties().getName();  
-            HashMap <String,MemberRef> objects=new HashMap();
+            HashMap <String,MemberRef> objects=new HashMap<String,MemberRef>();
             
             for (MemberRef m : sm)
                 objects.put(m.getObjid(),m);
@@ -200,7 +198,7 @@ public class Datasync {
         if (filecontent!=null){        
     
             HashMap<EscidocPackage,String> pkglist=EscidocPackage.buildPackageList(thebasedir, filecontent);
-            ArrayList<VersionableResource> resourcelist=new ArrayList();
+            ArrayList<VersionableResource> resourcelist=new ArrayList<VersionableResource> ();
                 
             for (EscidocPackage pkg : pkglist.keySet()){
                 String resourcename=pkglist.get(pkg);
@@ -233,9 +231,9 @@ public class Datasync {
             return;    
         
         HashMap<String, String> syncedfiles=App.db.listEntries(basedir,File.separator); 
-        HashMap<String,String> srvdelete=new HashMap();
+        HashMap<String,String> srvdelete=new HashMap<String,String>();
         
-        HashMap<String,Integer> pathToIdCount=new HashMap();
+        HashMap<String,Integer> pathToIdCount=new HashMap<String,Integer>();
         for (String path : syncedfiles.keySet()){
             String id=syncedfiles.get(path);
             Integer count=pathToIdCount.get(id);
@@ -278,7 +276,7 @@ public class Datasync {
         HashMap<String, String> syncedfiles=App.db.listEntries(basedir,File.separator);
         Set <String> syncedfilepath=syncedfiles.keySet();
         
-        HashMap <String,String> deletecandidates=new HashMap();
+        HashMap <String,String> deletecandidates=new HashMap<String,String>();
         
         for (String path : syncedfilepath){
             String objid=(String)syncedfiles.get(path);
@@ -369,7 +367,6 @@ public class Datasync {
                 InputStream is=method.getResponseBodyAsStream();                              
                 FileOutputStream file=new FileOutputStream(syncfile);
                 byte[] buffer=new byte[4096];
-                int offset=0;
                 int len;
                 while ((len=is.read(buffer, 0, buffer.length))!=-1){
                     file.write(buffer, 0, len);
@@ -488,7 +485,7 @@ public class Datasync {
         if (parent==null || children==null)
             return;
 
-        HashMap<String,VersionableResource> ids=new HashMap();
+        HashMap<String,VersionableResource> ids=new HashMap<String,VersionableResource>();
 
         for (VersionableResource child : children){
             ids.put(child.getObjid(),child);
@@ -570,7 +567,7 @@ public class Datasync {
         if (oldcomponents==null)
             oldcomponents=new Components();
        
-        HashMap<String,String> delComponentsIds=new HashMap();
+        HashMap<String,String> delComponentsIds=new HashMap<String,String>();
         for (Component component : oldcomponents){
             File file=pkg.getFileByFilename(component.getProperties().getFileName());
             if (file==null || App.db.localIsNewer(basedir+File.separator+file.getName(),item.getObjid(),file.lastModified()))

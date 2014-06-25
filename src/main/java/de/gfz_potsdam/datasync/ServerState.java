@@ -9,7 +9,6 @@ import de.escidoc.core.client.ContainerHandlerClient;
 import de.escidoc.core.client.ItemHandlerClient;
 import de.escidoc.core.client.StagingHandlerClient;
 import de.escidoc.core.client.exceptions.application.notfound.ResourceNotFoundException;
-import de.escidoc.core.resources.common.Result;
 import de.escidoc.core.resources.common.TaskParam;
 import de.escidoc.core.resources.common.structmap.ContainerMemberRef;
 import de.escidoc.core.resources.common.structmap.ItemMemberRef;
@@ -33,8 +32,6 @@ import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.joda.time.DateTime;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
 
 
 /**
@@ -211,7 +208,7 @@ public class ServerState {
         tp.setLastModificationDate(parent.getLastModificationDate());
         for (VersionableResource child : children)
             tp.addResourceRef(child.getObjid());
-        Result r=containerhandler.addMembers(parent.getObjid(), tp);      
+        	containerhandler.addMembers(parent.getObjid(), tp);      
   
         for (VersionableResource child : children){
           idToResource.put(child.getObjid(),child);        
@@ -226,7 +223,7 @@ public class ServerState {
         tp.setLastModificationDate(parent.getLastModificationDate());
         for (String child : srvdelete)        
             tp.addResourceRef(child);
-        Result r=containerhandler.removeMembers(parent.getObjid(), tp);
+        	containerhandler.removeMembers(parent.getObjid(), tp);
 
         for (String child : srvdelete){
             idToResource.remove(child);
